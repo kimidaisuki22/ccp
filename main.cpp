@@ -4,8 +4,10 @@
 #include <filesystem>
 #include <iostream>
 #include <spdlog/spdlog.h>
+#include <cy/chrono/stopwatch.h>
 int main(int argc, char **argv) {
   spdlog::default_logger()->set_pattern("%v [%s:%#]");
+  cy::chrono::Stopwatch stopwatch;
   try {
     std::string in = argv[1];
     std::string out = argv[2];
@@ -30,4 +32,5 @@ int main(int argc, char **argv) {
   } catch (std::exception &e) {
     std::cout << e.what() << "\n";
   }
+  SPDLOG_INFO("Time: {}s", stopwatch.GetElapsedTime());
 }
