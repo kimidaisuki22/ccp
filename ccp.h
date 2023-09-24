@@ -18,7 +18,7 @@
 #include <vcruntime.h>
 #include <vector>
 struct Ccp_arg {
-  std::vector<std::string> dir_to_exclude;
+  std::vector<std::string> dir_name_to_exclude;
   std::vector<std::string> file_extension_to_exclude;
 };
 struct Ccp_statistic {
@@ -59,7 +59,7 @@ inline bool ccp(std::filesystem::path in, std::filesystem::path out,
     if (is_dir) {
 
       bool skip_it =
-          std::any_of(args.dir_to_exclude.begin(), args.dir_to_exclude.end(),
+          std::any_of(args.dir_name_to_exclude.begin(), args.dir_name_to_exclude.end(),
                       [current_name](auto &n) { return n == current_name; });
       if (skip_it) {
         begin++;
