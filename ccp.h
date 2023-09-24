@@ -21,10 +21,15 @@ struct Ccp_arg {
   std::vector<std::string> dir_to_exclude;
   std::vector<std::string> file_extension_to_exclude;
 };
+struct Ccp_statistic{
+  std::atomic<size_t> total_size {};
+  std::atomic<size_t> copied_files{};
+  std::atomic<size_t> copied_dirs{};
+};
 inline bool ccp(std::filesystem::path in, std::filesystem::path out,
                 Ccp_arg args) {
   SPDLOG_INFO("copy data from {} to {}", in.string(), out.string());
-  std::atomic<size_t> total_size {};
+  Ccp_statistic statistic;
   moodycamel::BlockingConcurrentQueue<std::function<void()>> queue;
   std::atomic<bool> loading = true;
   uint64_t ct{};
@@ -92,12 +97,13 @@ for(int i=0;i < 16;i++){
           }
 
         }
-        auto copy_call = [=,&total_size]{
+        auto copy_call = [=,&statistic]{
             try{
 
         if(std::filesystem::is_regular_file(current)){
-          total_size += std::filesystem::file_size(current);
             std::filesystem::copy_file(current, output_path);
+          statistic.total_size += std::filesystem::file_size(current);
+          ++statistic.copied_files;
         }else if(std::filesystem::is_symlink(current)){
             std::filesystem::copy_symlink(current,output_path);
         }
@@ -128,6 +134,7 @@ for(int i=0;i < 16;i++){
   for(auto &t: threads){
     t->join();
   }
-  SPDLOG_INFO("TOTAL: {}",total_size.load());
+  SPDLOG_INFO("TOTAL: {}",statistic.total_size.load());
+  SPDLOG_INFO("file count: {}",statistic.copied_files.load());
   return true;
 }
