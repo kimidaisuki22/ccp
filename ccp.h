@@ -17,6 +17,7 @@
 #include <thread>
 #include <vcruntime.h>
 #include <vector>
+#include <cy/text/to_str.h>
 struct Ccp_arg {
   std::vector<std::string> dir_name_to_exclude;
   std::vector<std::string> file_extension_to_exclude;
@@ -145,7 +146,7 @@ inline bool ccp(std::filesystem::path in, std::filesystem::path out,
   for (auto &t : threads) {
     t->join();
   }
-  SPDLOG_INFO("total copied size: {}", statistic.total_size.load());
+  SPDLOG_INFO("total copied size: {} bytes",cy::text::to_number_unit_SI( statistic.total_size.load()));
   SPDLOG_INFO("file count: {}", statistic.copied_files.load());
   SPDLOG_INFO("created dirs count: {}", statistic.created_dirs.load());
   return true;
