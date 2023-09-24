@@ -20,11 +20,14 @@
 struct Ccp_arg {
   std::vector<std::string> dir_name_to_exclude;
   std::vector<std::string> file_extension_to_exclude;
+
+  bool dry_run{};
 };
 struct Ccp_statistic {
   std::atomic<size_t> total_size{};
   std::atomic<size_t> copied_files{};
-  std::atomic<size_t> copied_dirs{};
+  std::atomic<size_t> copied_dirs{};  // not used
+  std::atomic<size_t> created_dirs{}; // not used
 };
 inline bool ccp(std::filesystem::path in, std::filesystem::path out,
                 Ccp_arg args) {
@@ -57,10 +60,9 @@ inline bool ccp(std::filesystem::path in, std::filesystem::path out,
     auto current_name = begin->path().filename();
     // SPDLOG_INFO("tasking {} {}", current.string(), is_dir ? "[dir]" : "");
     if (is_dir) {
-
-      bool skip_it =
-          std::any_of(args.dir_name_to_exclude.begin(), args.dir_name_to_exclude.end(),
-                      [current_name](auto &n) { return n == current_name; });
+      bool skip_it = std::any_of(
+          args.dir_name_to_exclude.begin(), args.dir_name_to_exclude.end(),
+          [current_name](auto &n) { return n == current_name; });
       if (skip_it) {
         begin++;
         if (begin != end) {
@@ -88,7 +90,14 @@ inline bool ccp(std::filesystem::path in, std::filesystem::path out,
             !std::filesystem::exists(output_path.parent_path())) {
           std::error_code ec;
           try {
-            std::filesystem::create_directories(output_path.parent_path());
+            if (!args.dry_run) {
+
+              bool ok = std::filesystem::create_directories(
+                  output_path.parent_path());
+              if (ok) {
+                statistic.created_dirs++;
+              }
+            }
           } catch (std::exception &e) {
             // SPDLOG_ERROR("create dir failed: {}",e.what());
             loading = false;
@@ -99,11 +108,15 @@ inline bool ccp(std::filesystem::path in, std::filesystem::path out,
           try {
 
             if (std::filesystem::is_regular_file(current)) {
-              std::filesystem::copy_file(current, output_path);
+              if (!args.dry_run) {
+                std::filesystem::copy_file(current, output_path);
+              }
               statistic.total_size += std::filesystem::file_size(current);
               ++statistic.copied_files;
             } else if (std::filesystem::is_symlink(current)) {
-              std::filesystem::copy_symlink(current, output_path);
+              if (!args.dry_run) {
+                std::filesystem::copy_symlink(current, output_path);
+              }
             }
           } catch (std::exception &e) {
             SPDLOG_ERROR("failed copy {}", e.what());
@@ -132,7 +145,8 @@ inline bool ccp(std::filesystem::path in, std::filesystem::path out,
   for (auto &t : threads) {
     t->join();
   }
-  SPDLOG_INFO("TOTAL: {}", statistic.total_size.load());
+  SPDLOG_INFO("total copied size: {}", statistic.total_size.load());
   SPDLOG_INFO("file count: {}", statistic.copied_files.load());
+  SPDLOG_INFO("created dirs count: {}", statistic.created_dirs.load());
   return true;
 }
