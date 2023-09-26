@@ -5,6 +5,8 @@
 #include <algorithm>
 #include <atomic>
 #include <chrono>
+#include <cy/chrono/stopwatch.h>
+#include <cy/text/to_str.h>
 #include <exception>
 #include <filesystem>
 #include <functional>
@@ -17,7 +19,6 @@
 #include <thread>
 #include <vcruntime.h>
 #include <vector>
-#include <cy/text/to_str.h>
 struct Ccp_arg {
   std::vector<std::string> dir_name_to_exclude;
   std::vector<std::string> file_extension_to_exclude;
@@ -33,6 +34,7 @@ struct Ccp_statistic {
 inline bool ccp(std::filesystem::path in, std::filesystem::path out,
                 Ccp_arg args) {
   SPDLOG_INFO("copy data from {} to {}", in.string(), out.string());
+  cy::chrono::Stopwatch stopwatch;
   Ccp_statistic statistic;
   moodycamel::BlockingConcurrentQueue<std::function<void()>> queue;
   std::atomic<bool> loading = true;
@@ -53,11 +55,19 @@ inline bool ccp(std::filesystem::path in, std::filesystem::path out,
     }));
   }
 
-  std::filesystem::recursive_directory_iterator begin{in}, end{};
+  std::filesystem::recursive_directory_iterator begin{
+      in, std::filesystem::directory_options::skip_permission_denied},
+      end{};
   while (begin != end) {
     bool stop_adding = false;
     const auto current = begin->path();
-    bool is_dir = std::filesystem::is_directory(*begin);
+
+    bool is_dir{};
+    try {
+      is_dir = std::filesystem::is_directory(*begin);
+    } catch (std::exception &e) {
+      SPDLOG_ERROR("FAILED: {} on {}", e.what(), current.string());
+    }
     auto current_name = begin->path().filename();
     // SPDLOG_INFO("tasking {} {}", current.string(), is_dir ? "[dir]" : "");
     if (is_dir) {
@@ -136,7 +146,11 @@ inline bool ccp(std::filesystem::path in, std::filesystem::path out,
       }
     }
     if (!stop_adding) {
-      begin++;
+      try {
+        ++begin;
+      } catch (std::exception &e) {
+        SPDLOG_CRITICAL("failed to iterate directory: {}", e.what());
+      }
     }
   }
   while (queue.size_approx() != 0) {
@@ -146,8 +160,14 @@ inline bool ccp(std::filesystem::path in, std::filesystem::path out,
   for (auto &t : threads) {
     t->join();
   }
-  SPDLOG_INFO("total copied size: {} bytes",cy::text::to_number_unit_SI( statistic.total_size.load()));
+  SPDLOG_INFO("total copied size: {} bytes",
+              cy::text::to_number_unit_SI(statistic.total_size.load()));
   SPDLOG_INFO("file count: {}", statistic.copied_files.load());
   SPDLOG_INFO("created dirs count: {}", statistic.created_dirs.load());
+  double seconds = stopwatch.GetElapsedTime();
+  double ops = statistic.copied_files / seconds;
+  double speed =statistic.total_size / seconds;
+
+  SPDLOG_INFO("speed: {} ops/s {} bytes/s",cy::text::to_number_unit_SI(ops),cy::text::to_number_unit_SI(speed));
   return true;
 }
