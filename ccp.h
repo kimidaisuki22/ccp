@@ -17,7 +17,6 @@
 #include <string>
 #include <system_error>
 #include <thread>
-#include <vcruntime.h>
 #include <vector>
 struct Ccp_arg {
   std::vector<std::string> dir_name_to_exclude;
