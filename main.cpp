@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
     std::string out = argv[2];
     Ccp_arg config;
     // prepare to remove those built-in rules or add a switch for these.
-    config.dir_name_to_exclude = {".git",      ".cache",   ".empty", "bin",
+    config.dir_name_to_exclude = {".cache",   ".empty", "bin",
                              "build",     ".dbus",    "vcpkg",  "AppData",
                              "Downloads", "Documents"};
     config.file_extension_to_exclude = {".gz",  ".tar", ".mp4", ".dll",
