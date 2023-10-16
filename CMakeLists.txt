@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.23.0)
 project(ccp VERSION 0.0.1)
-
+if(MSVC)
+    add_compile_options("/utf-8")
+endif()
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 include(CTest)
 set(CMAKE_CXX_STANDARD 20)
