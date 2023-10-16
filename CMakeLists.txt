@@ -15,6 +15,8 @@ find_package(unofficial-concurrentqueue CONFIG REQUIRED)
 target_link_libraries(ccp PRIVATE unofficial::concurrentqueue::concurrentqueue)
 find_package(cy CONFIG REQUIRED)
 target_link_libraries(ccp PRIVATE cy::cy)
+find_package(win-manifests CONFIG REQUIRED)
+target_link_libraries(ccp PRIVATE win-manifests::win-manifests)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})

@@ -8,6 +8,7 @@
         "benchmark",
         "spdlog",
         "concurrentqueue",
-        "cy"
+        "cy",
+        "win-manifests"
     ]
 }
