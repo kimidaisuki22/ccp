@@ -163,7 +163,7 @@ inline bool ccp(std::filesystem::path in, std::filesystem::path out,
               cy::text::to_number_unit_SI(statistic.total_size.load()));
   SPDLOG_INFO("file count: {}", statistic.copied_files.load());
   SPDLOG_INFO("created dirs count: {}", statistic.created_dirs.load());
-  double seconds = stopwatch.GetElapsedTime();
+  double seconds = stopwatch.get_elapsed_time();
   double ops = statistic.copied_files / seconds;
   double speed =statistic.total_size / seconds;
 

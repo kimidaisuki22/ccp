@@ -1,14 +1,14 @@
 {
-    "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg/master/scripts/vcpkg.schema.json",
-    "name": "ccp",
-    "version": "0.0.1",
-    "dependencies": [
-        "fmt",
-        "gtest",
-        "benchmark",
-        "spdlog",
-        "concurrentqueue",
-        "cy",
-        "win-manifests"
-    ]
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg/master/scripts/vcpkg.schema.json",
+  "name": "ccp",
+  "version": "0.0.1",
+  "dependencies": [
+    "fmt",
+    "gtest",
+    "benchmark",
+    "spdlog",
+    "concurrentqueue",
+    "cy",
+    "win-manifests"
+  ]
 }

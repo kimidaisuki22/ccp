@@ -38,5 +38,5 @@ int main(int argc, char **argv) {
   } catch (std::exception &e) {
     std::cout << e.what() << "\n";
   }
-  SPDLOG_INFO("Time: {}s", stopwatch.GetElapsedTime());
+  SPDLOG_INFO("Time: {}s", stopwatch.get_elapsed_time());
 }
