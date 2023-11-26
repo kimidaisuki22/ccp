@@ -22,8 +22,10 @@ struct Ccp_arg {
   std::vector<std::string> dir_name_to_exclude;
   std::vector<std::string> file_extension_to_exclude;
 
-  bool dry_run{};
   int thread_count{};
+
+  bool dry_run{};
+  bool progress_bar{};
 };
 struct Ccp_statistic {
   std::atomic<size_t> total_size{};
@@ -59,6 +61,22 @@ inline bool ccp(std::filesystem::path in, std::filesystem::path out,
   std::filesystem::recursive_directory_iterator begin{
       in, std::filesystem::directory_options::skip_permission_denied},
       end{};
+  std::unique_ptr<std::thread> progress_thread;
+  if (args.progress_bar) {
+    progress_thread = std::make_unique<std::thread>([&] {
+      auto files = statistic.copied_files.load();
+      auto size = statistic.total_size.load();
+      while (loading.load()) {
+        std::this_thread::sleep_for(std::chrono::seconds{1});
+        auto current_files = statistic.copied_files.load();
+        auto current_size = statistic.total_size.load();
+        std::cout << fmt::format("file: {} size: {} d: {} {}\n", current_files,
+                                 cy::text::to_number_unit_SI(current_size),current_files - files, cy::text::to_number_unit_SI(current_size - size));
+                                 files = current_files;
+                                 size = current_size;
+      }
+    });
+  }
   while (begin != end) {
     bool stop_adding = false;
     const auto current = begin->path();
@@ -160,6 +178,9 @@ inline bool ccp(std::filesystem::path in, std::filesystem::path out,
   loading = false;
   for (auto &t : threads) {
     t->join();
+  }
+  if (progress_thread) {
+    progress_thread->join();
   }
   SPDLOG_INFO("total copied size: {} bytes",
               cy::text::to_number_unit_SI(statistic.total_size.load()));

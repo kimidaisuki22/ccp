@@ -19,6 +19,7 @@ int main(int argc, char **argv) {
   int thread_count{};
   bool copy_all_file{false};
   bool dry_run{false};
+  bool progress_bar{};
 
   {
 
@@ -32,6 +33,7 @@ int main(int argc, char **argv) {
     cli_opts.add_flag("--all", copy_all_file,
                       "copy all file, ignore the filters.");
     cli_opts.add_flag("--dry-run", dry_run, "Dry run, not copy anything.");
+    cli_opts.add_flag("--progress", progress_bar, "Show progress bar.");
     cli_opts.add_option("--dir_filters", dir_filters, "exclude dirs.");
     cli_opts.add_option("--extension_filters", extension_filters,
                         "exclude files with extensions [like '.png;.mp3'].");
@@ -49,6 +51,7 @@ int main(int argc, char **argv) {
     Ccp_arg config;
     config.thread_count = thread_count;
     config.dry_run = dry_run;
+    config.progress_bar = progress_bar;
     // prepare to remove those built-in rules or add a switch for these.
     config.dir_name_to_exclude = {".cache",  ".empty",    "bin",
                                   "build",   ".dbus",     "vcpkg",
