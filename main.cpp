@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
         SPDLOG_INFO("exclude extension: '{}'", ex);
       }
     }
-    if (copy_all_file) {
+    if (!copy_all_file) {
       config.dir_name_to_exclude =
           concat(config.dir_name_to_exclude, split_comma(dir_filters));
       for (auto ex : config.dir_name_to_exclude) {
@@ -67,6 +67,8 @@ int main(int argc, char **argv) {
       }
     }
     if (copy_all_file) {
+      config.file_extension_to_exclude.clear();
+      config.dir_name_to_exclude.clear();
       SPDLOG_INFO("all files enabled, clean filters");
     }
     if (dry_run) {
