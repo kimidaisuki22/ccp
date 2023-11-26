@@ -16,6 +16,7 @@ int main(int argc, char **argv) {
   std::string destination_path;
   std::string dir_filters;
   std::string extension_filters;
+  int thread_count{};
   bool copy_all_file{false};
   bool dry_run{false};
 
@@ -26,6 +27,7 @@ int main(int argc, char **argv) {
     cli_opts
         .add_option("--destination", destination_path, "path for destination")
         ->required();
+    cli_opts.add_option("-t,--thread", thread_count, "path for source")->default_val(0);
 
     cli_opts.add_flag("--all", copy_all_file,
                       "copy all file, ignore the filters.");
@@ -45,6 +47,7 @@ int main(int argc, char **argv) {
   try {
 
     Ccp_arg config;
+    config.thread_count = thread_count;
     config.dry_run = dry_run;
     // prepare to remove those built-in rules or add a switch for these.
     config.dir_name_to_exclude = {".cache",  ".empty",    "bin",

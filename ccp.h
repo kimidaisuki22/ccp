@@ -23,6 +23,7 @@ struct Ccp_arg {
   std::vector<std::string> file_extension_to_exclude;
 
   bool dry_run{};
+  int thread_count{};
 };
 struct Ccp_statistic {
   std::atomic<size_t> total_size{};
@@ -42,7 +43,8 @@ inline bool ccp(std::filesystem::path in, std::filesystem::path out,
 
   std::vector<std::unique_ptr<std::thread>> threads;
 
-  for (int i = 0; i < 16; i++) {
+  const int thread_count = args.thread_count ? args.thread_count : 16;
+  for (int i = 0; i < std::max(1, args.thread_count); i++) {
     threads.push_back(std::make_unique<std::thread>([&] {
       while (loading) {
         std::function<void()> f;
@@ -165,8 +167,9 @@ inline bool ccp(std::filesystem::path in, std::filesystem::path out,
   SPDLOG_INFO("created dirs count: {}", statistic.created_dirs.load());
   double seconds = stopwatch.get_elapsed_time();
   double ops = statistic.copied_files / seconds;
-  double speed =statistic.total_size / seconds;
+  double speed = statistic.total_size / seconds;
 
-  SPDLOG_INFO("speed: {} ops/s {} bytes/s",cy::text::to_number_unit_SI(ops),cy::text::to_number_unit_SI(speed));
+  SPDLOG_INFO("speed: {} ops/s {} bytes/s", cy::text::to_number_unit_SI(ops),
+              cy::text::to_number_unit_SI(speed));
   return true;
 }
