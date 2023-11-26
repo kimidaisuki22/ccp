@@ -17,6 +17,8 @@ find_package(cy CONFIG REQUIRED)
 target_link_libraries(ccp PRIVATE cy::cy)
 find_package(win-manifests CONFIG REQUIRED)
 target_link_libraries(ccp PRIVATE win-manifests::win-manifests)
+find_package(CLI11 CONFIG REQUIRED)
+target_link_libraries(ccp PUBLIC CLI11::CLI11)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})

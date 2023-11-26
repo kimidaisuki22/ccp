@@ -9,6 +9,7 @@
     "spdlog",
     "concurrentqueue",
     "cy",
-    "win-manifests"
+    "win-manifests",
+    "cli11"
   ]
 }
