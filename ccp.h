@@ -116,12 +116,11 @@ inline bool ccp(std::filesystem::path in, std::filesystem::path out,
           args.file_extension_to_exclude.end(),
           [current_ext](const auto &n) { return n == current_ext; });
       if (!skip_it) {
-        if (output_path.has_parent_path() &&
+        if (!args.dry_run && output_path.has_parent_path() &&
             !std::filesystem::exists(output_path.parent_path())) {
           std::error_code ec;
           try {
             if (!args.dry_run) {
-
               bool ok = std::filesystem::create_directories(
                   output_path.parent_path());
               if (ok) {
